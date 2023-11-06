@@ -1,13 +1,15 @@
 import path from "path";
 import fs from "fs/promises";
-import gravatar from "gravatar";
+
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
 
 import HttpError from "../helpers/HttpError.js";
+import trimAvatar from "../helpers/trimAvatar.js";
 import ctrlWrapper from "../decorators/ctrlWrapper.js";
+
 import { User } from "../models/User.js";
-import trimAvatar from "../helpers/TrimAvatar.js";
 
 const { JWT_SECRET } = process.env;
 
@@ -17,18 +19,18 @@ const register = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
 
-  const tempPath = require.file?.path;
-  const filename = require.file?.filename;
+  const tempPath = req.file?.path;
+  const filename = req.file?.filename;
 
   if (user) {
     if (tempPath) await fs.unlink(tempPath);
     throw HttpError(409, `email ${email} is in use`);
-  } 
+  }
 
-  let avtarURL = "";
+  let avatarURL = "";
 
-  if(!req.file) {
-    avtarURL = gravatar.url(email, {protocol: "http", s: 250});
+  if (!req.file) {
+    avatarURL = gravatar.url(email, { protocol: "http", s: 250 });
   } else {
     const newPath = path.join(avatarPath, filename);
     await fs.rename(tempPath, newPath);
@@ -37,16 +39,16 @@ const register = async (req, res) => {
   }
 
   const hashedPass = await bcrypt.hash(password, 10);
-  const newUser = await User.create({ 
-    ...req.body, 
-    password: hashedPass,
+  const newUser = await User.create({
+    ...req.body,
     avatarURL,
+    password: hashedPass,
   });
 
   res.status(201).json({
-    user: { 
-      email: newUser.email, 
-      subscription: newUser.subscription, 
+    user: {
+      email: newUser.email,
+      subscription: newUser.subscription,
       avatarURL,
     },
   });

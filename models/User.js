@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
 import Joi from "joi";
-
 import { handleSaveError, runUpdateValidation } from "./hooks.js";
 
 const roleList = ["starter", "pro", "business"];
