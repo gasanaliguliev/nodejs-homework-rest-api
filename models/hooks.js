@@ -1,6 +1,7 @@
 export const handleSaveError = (err, data, next) => {
-    err.status = 400;
-    next();
+        const { name, code } = err;
+        err.status = name === "MongoServerError" && code === 11000 ? 409 : 400;
+        next();
 };
 
 export const runUpdateValidation = function (next) {
